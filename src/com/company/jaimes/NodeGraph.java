@@ -14,32 +14,77 @@ import org.jgrapht.nio.ImportException;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 class NodeGraph extends JApplet {
-    private static final Dimension DEFAULT_SIZE = new Dimension(800, 860);
+    private static final Dimension DEFAULT_SIZE = new Dimension(700, 650);
 //    private static final Dimension WINDOW_SIZE = new Dimension(630, 200);
 
-    private JGraphXAdapter<String, NodeWeightedEdge> jgxAdapter;
+    private JGraphXAdapter<Node, NodeWeightedEdge> jgxAdapter;
     private mxGraphComponent component;
-    private ListenableGraph<String, NodeWeightedEdge> g;
+    private mxCircleLayout layout;
+    private ListenableGraph<Node, NodeWeightedEdge> g;
     private Map<String, String> nodeIds = new HashMap<>();
     private Node[] nodes;
+    private int stateCount;
     private List<List<Integer>> connectionList;
+    private CountDownLatch latch;
+    private JButton button;
+    private JLabel label;
 
     NodeGraph(Node[] nodes, List<List<Integer>> connectionList){
         this.nodes = nodes;
+        this.stateCount = 0;
         this.connectionList = connectionList;
+        this.latch = latch;
         init();
 
         JFrame frame = new JFrame();
+//        frame.setLayout();
         frame.getContentPane().add(this);
-        frame.setTitle("JGraphT Adapter to JGraphX Demo");
+        addSettings(frame);
+//        addButton();
+        frame.setTitle("Ivan Jaimes - Distance Vector Routing - Project 2" );
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
         frame.setVisible(true);
+    }
+
+    private void addSettings(JFrame frame){
+        JPanel panel = new JPanel();
+        panel.setLayout(new FlowLayout());
+
+        label= new JLabel();
+        label.setText(String.valueOf(stateCount));
+
+        button = new JButton("Next State");
+        button.setSize(100,200);
+        button.addActionListener(generateButtonListener());
+
+        panel.add(label);
+        panel.add(button);
+        panel.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
+
+        frame.getContentPane().add(panel, BorderLayout.SOUTH);
+    }
+
+    private ActionListener generateButtonListener(){
+        return new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                latch.countDown();
+
+            }
+        };
+    }
+
+    public void addLatch(CountDownLatch latch){
+        this.latch = latch;
     }
 
     @Override
@@ -57,7 +102,6 @@ class NodeGraph extends JApplet {
         component.setConnectable(false);
         component.getGraph().setAllowDanglingEdges(false);
 
-
         mxGraphModel graphModel = (mxGraphModel)component.getGraph().getModel();
         Collection<Object> cells =  graphModel.getCells().values();
 
@@ -69,25 +113,24 @@ class NodeGraph extends JApplet {
         resize(DEFAULT_SIZE);
 
         int rad = 100;
-        mxCircleLayout layout = new mxCircleLayout(jgxAdapter);
-        layout.setX0((DEFAULT_SIZE.width/2.0) - rad);
-        layout.setY0((DEFAULT_SIZE.height/2.0) - rad);
+        layout = new mxCircleLayout(jgxAdapter);
+        layout.setX0(20);
+        layout.setY0(20);
+        layout.setX0((DEFAULT_SIZE.width/4.0) - rad);
+        layout.setY0((DEFAULT_SIZE.height/4.0) - rad);
         layout.setRadius(rad);
         layout.setMoveCircle(true);
 
         layout.execute(jgxAdapter.getDefaultParent());
-
-        viewUpdate();
-
     }
 
-    private void addVertex(ListenableGraph<String, NodeWeightedEdge> g) {
+    private void addVertex(ListenableGraph<Node, NodeWeightedEdge> g) {
         Arrays.stream(nodes).forEach(node -> {
-            g.addVertex(node.prettyString());
+            g.addVertex(node);
         });
     }
 
-    public void addNodeEdges(Graph<String, NodeWeightedEdge> g, int[][] nodessss){
+    public void addNodeEdges(ListenableGraph<Node, NodeWeightedEdge> g, int[][] nodessss){
         System.out.println("======");
         connectionList.forEach((pair) -> {
             System.out.println(pair);
@@ -101,52 +144,25 @@ class NodeGraph extends JApplet {
                     .findFirst()
                     .get();
 
-            NodeWeightedEdge edge = g.addEdge(a.prettyString(), b.prettyString());
-            g.setEdgeWeight(a.prettyString(), b.prettyString(), pair.get(2));
+            NodeWeightedEdge edge = g.addEdge(a, b);
+            g.setEdgeWeight(a, b, pair.get(2));
         });
 
-        g.vertexSet().forEach((v) -> System.out.println(v.charAt(0)));
-
-
-//        NodeWeightedEdge e1 = g.addEdge(a,b);
-//        g.setEdgeWeight(e1, 2);
-
-//        Arrays.stream(nodes).forEach(meta -> {
-//            String src = String.valueOf(meta[0]);
-//            String dest = String.valueOf(meta[1]);
-//            double cost = (double) meta[2];
-//
-//            if(nodeIds.containsKey(src)){
-//                src = nodeIds.get(src);
-//            }else{
-//                g.addVertex(src);
-//                nodeIds.put(src, src);
-//            }
-//            if(nodeIds.containsKey(dest)){
-//                dest = nodeIds.get(dest);
-//            }else{
-//                g.addVertex(dest);
-//                nodeIds.put(dest, dest);
-//            }
-//
-//            NodeWeightedEdge edge = g.addEdge(src, dest);
-//            g.setEdgeWeight(edge, cost);
-//        });
+        g.vertexSet().forEach((v) -> System.out.println(v.getId()));
     }
 
-    private void viewUpdate(){
-    }
 
     public void update() {
-        System.out.println(component.getGraph().getModel().contains(nodes[0]));
-//        component.getGraph().
-        component.getGraph().getModel().beginUpdate();
-        g.vertexSet().forEach((v) -> {
+        component.getGraph().refresh();
+        label.setText(String.valueOf(stateCount));
+    }
 
+    public void close() {
+        button.setEnabled(false);
+        button.setText("Final State Reached");
+    }
 
-        });
-        System.out.println("new nodes");
-        Arrays.stream(nodes).forEach(System.out::println);
-        component.getGraph().getModel().endUpdate();
+    public void addStateCount() {
+        this.stateCount++;
     }
 }

@@ -1,7 +1,5 @@
 package com.company.jaimes;
 
-import com.sun.deploy.uitoolkit.impl.awt.ui.SwingConsoleWindow;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -30,17 +28,13 @@ public class NodeController {
     // Listen for a space press to update state. Stop updating at final state.
     private void run() {
         System.out.println("init node load");
-//        view.print(nodes);
-        view.update();
-        System.out.println("-------------");
+        view.print(nodes);
 
-        while (updateNodes()  ){
+        while (updateNodes()){
+            view.print(nodes);
             view.listen();
-
             ++stateChangeCount;
-//            view.print(nodes);
             view.update();
-
         }
 
         view.close();
@@ -48,30 +42,43 @@ public class NodeController {
 
     }
 
+    private void printNeighbors() {
+        System.out.print("------neighbors of " );
+        Arrays.stream(nodes).forEach((node) -> {
+            System.out.println(node.getId());
+            node.getNeighbors().forEach(nei -> System.out.println(nei.lineString()));
+        });
+    }
+
     private boolean updateNodes() {
-        boolean didUpdate = false;
-        for(Node node : nodes){
-
-            for(Node otherNode : nodes){
-                if(node != otherNode){
-                    didUpdate |= pingNode(node, otherNode); // if any pingNode returns true, then did update is true. inclusive OR used for cases that are false after it has been set to true.
-                }
-            }
-
-            node.save();
-        }
+        boolean hasUpdated = false;
 
         for(Node node : nodes){
-            if(node.updateSelf() == true){
-                didUpdate = true;
-            }
+            hasUpdated |= node.pingNeighbors();
         }
 
-        return didUpdate;
+//        for(Node node : nodes){
+//            didUpdate |= node.pingNeighbors();
+////            for(Node otherNode : nodes){
+////                if(node != otherNode){
+////                    didUpdate |= pingNode(node, otherNode); // if any pingNode returns true, then did update is true. inclusive OR used for cases that are false after it has been set to true.
+////                }
+////            }
+//
+//            node.save();
+//        }
+//
+//        for(Node node : nodes){
+//            if(node.updateSelf() == true){
+//                hasUpdated = true;
+//            }
+//        }
+
+        return hasUpdated;
     }
-    private boolean pingNode(Node node1, Node node2){
-        return node1.update(node2.getId(), node2.getNodeRow());
-    }
+//    private boolean pingNode(Node node1, Node node2){
+//        return node1.update(node2.getId(), node2.getNodeRow());
+//    }
 
 //    private void printState(){
 //        view.print(nodes);
@@ -122,12 +129,24 @@ public class NodeController {
                     nodes[destId-1].addCost(id, cost);
                 }
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+        linkNeighbors();
         return true;
+    }
+
+    private void linkNeighbors() {
+        connectionList.stream()
+                .map((info) -> new int[]{info.get(0), info.get(1)}) // [id1, id2]
+                .forEach((pair) -> {
+                    // make neighbors with each other
+
+
+                    nodes[pair[0]-1].addNeighbor(nodes[pair[1]-1]);
+                    nodes[pair[1]-1].addNeighbor(nodes[pair[0]-1]);
+                });
     }
 
     public Node[] getNodes(){

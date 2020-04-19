@@ -14,11 +14,13 @@ public class Costs {
         this.log = new int[size][size];
         for(int i=0; i<log.length; ++i){
             if(i == this.parentIndex){
-                Arrays.fill(log[i], 0);
+                Arrays.fill(log[i], Integer.MAX_VALUE);
+
             }else{
                 Arrays.fill(log[i], Integer.MAX_VALUE);
             }
         }
+        log[id-1][id-1] = 0;
     }
 
     public Costs(Costs oldCosts) {
@@ -30,7 +32,7 @@ public class Costs {
         this.log[nodeId-1][destId-1] = cost;
     }
 
-    int[] getSelfCost(){
+    int[] getSelfRow(){
         return log[parentIndex];
     }
 
@@ -48,6 +50,7 @@ public class Costs {
         log[row][col] = newCost;
     }
 
+    public int[] getRow(int id){return log[id-1];}
 
     public int getRowSize(){return log.length;}
     public int getColSize(){return log[0].length;}
@@ -71,4 +74,8 @@ public class Costs {
                 '}';
     }
 
+    public void updateRow(int id, int[] selfCostRow) {
+        int[] newRow = selfCostRow.clone();
+        this.log[id-1] = newRow;
+    }
 }
