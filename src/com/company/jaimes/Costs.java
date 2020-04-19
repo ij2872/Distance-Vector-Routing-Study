@@ -23,11 +23,6 @@ public class Costs {
         log[id-1][id-1] = 0;
     }
 
-    public Costs(Costs oldCosts) {
-        this.parentIndex = oldCosts.parentIndex;
-        this.log = Arrays.stream(oldCosts.log).map(int[]::clone).toArray(int[][]::new); // deep copy
-    }
-
     void addCost(int nodeId, int destId, int cost ){
         this.log[nodeId-1][destId-1] = cost;
     }
@@ -45,14 +40,8 @@ public class Costs {
         return log[nodeId-1][col];
     }
 
-    // NOTE!!! Indexing at 0 base
-    public void setLog(int row, int col, int newCost){
-        log[row][col] = newCost;
-    }
-
     public int[] getRow(int id){return log[id-1];}
 
-    public int getRowSize(){return log.length;}
     public int getColSize(){return log[0].length;}
 
     public String prettyString(){

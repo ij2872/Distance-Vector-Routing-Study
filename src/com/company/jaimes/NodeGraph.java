@@ -45,10 +45,8 @@ class NodeGraph extends JApplet {
         init();
 
         JFrame frame = new JFrame();
-//        frame.setLayout();
         frame.getContentPane().add(this);
         addSettings(frame);
-//        addButton();
         frame.setTitle("Ivan Jaimes - Distance Vector Routing - Project 2" );
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
@@ -132,6 +130,7 @@ class NodeGraph extends JApplet {
 
     public void addNodeEdges(ListenableGraph<Node, NodeWeightedEdge> g, int[][] nodessss){
         System.out.println("======");
+        // TODO: each node has pointers to it's neighbors. use that instead of this method.
         connectionList.forEach((pair) -> {
             System.out.println(pair);
             Node a = Arrays.stream(nodes)

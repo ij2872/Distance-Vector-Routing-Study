@@ -9,11 +9,9 @@ import java.util.stream.Collectors;
 public class NodeController {
     private String filename = "";
     private Node[] nodes;
-    private Map<Integer, Node> nodeMap = new HashMap<>();
     private int nodeSize = 0;
     private int stateChangeCount = 0;
     private NodeView view = new NodeView();
-    private Scanner scan = new Scanner(System.in);
     private List<List<Integer>> connectionList = new ArrayList<>();
 
     NodeController(String filename){
@@ -21,7 +19,6 @@ public class NodeController {
         this.nodeSize = getNodeSize();
         buildNodes();
         view.init(nodes, connectionList);
-        System.out.println("printing");
         run();
     }
 
@@ -42,14 +39,6 @@ public class NodeController {
 
     }
 
-    private void printNeighbors() {
-        System.out.print("------neighbors of " );
-        Arrays.stream(nodes).forEach((node) -> {
-            System.out.println(node.getId());
-            node.getNeighbors().forEach(nei -> System.out.println(nei.lineString()));
-        });
-    }
-
     private boolean updateNodes() {
         boolean hasUpdated = false;
 
@@ -57,32 +46,8 @@ public class NodeController {
             hasUpdated |= node.pingNeighbors();
         }
 
-//        for(Node node : nodes){
-//            didUpdate |= node.pingNeighbors();
-////            for(Node otherNode : nodes){
-////                if(node != otherNode){
-////                    didUpdate |= pingNode(node, otherNode); // if any pingNode returns true, then did update is true. inclusive OR used for cases that are false after it has been set to true.
-////                }
-////            }
-//
-//            node.save();
-//        }
-//
-//        for(Node node : nodes){
-//            if(node.updateSelf() == true){
-//                hasUpdated = true;
-//            }
-//        }
-
         return hasUpdated;
     }
-//    private boolean pingNode(Node node1, Node node2){
-//        return node1.update(node2.getId(), node2.getNodeRow());
-//    }
-
-//    private void printState(){
-//        view.print(nodes);
-//    }
 
     private boolean buildNodes() {
         try {
@@ -99,22 +64,6 @@ public class NodeController {
                 int id = data.get(0);
                 int destId = data.get(1);
                 int cost = data.get(2);
-
-                // check if node already exists
-                if(nodeMap.containsKey(id)){
-                    nodeMap.get(id).addCost(destId, cost);
-                }else{
-                    // create new node
-                    Node newNode = new Node(id, nodeSize, destId, cost);
-                    nodeMap.put(id, newNode);
-                }
-                if(nodeMap.containsKey(destId)){
-                    nodeMap.get(destId).addCost(id, cost);
-                }else{
-                    // create new node
-                    Node newNode = new Node(destId, nodeSize, id, cost);
-                    nodeMap.put(destId, newNode);
-                }
 
                 // arr list
                 if(nodes[id-1] == null) {

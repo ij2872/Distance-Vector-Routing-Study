@@ -7,21 +7,14 @@ import java.util.List;
 public class Node {
     private int id;
     private Costs costs;
-    private Costs oldCosts;
     private List<Node> neighborNodes;
 
     // for new nodes
     Node(int id, int size, int dest, int cost){
         this.id = id;
         this.costs = new Costs(id, size);
-        this.oldCosts = new Costs(id, size);
         this.neighborNodes = new ArrayList<>();
         addCost(dest, cost);
-    }
-
-    void printCosts(){
-        System.out.println("\nData for Node " + getId());
-        System.out.println(Arrays.deepToString(costs.getCost()).replace("], ", "],\n"));
     }
 
     void addCost(int dest, int cost){
@@ -55,7 +48,6 @@ public class Node {
                 this.update(i+1, neighbor.getNodeRow(i+1));
                 hasUpdated = true;
             }
-
         }
         return hasUpdated;
     }
@@ -92,8 +84,6 @@ public class Node {
         return hasUpdated;
     }
 
-    private void ping(int[][] costs) {
-    }
 
     // given a new row, update it with the given index
     private void update(int id, int[] selfCostRow) {
@@ -108,12 +98,6 @@ public class Node {
         return this.id;
     }
 
-    int[][] getCosts(){
-        return this.costs.getCost();
-    }
-
-    int[] getOldNodeCosts(){return this.oldCosts.getSelfRow();}
-
     // Get the nodes row based on id. used for pinging to other nodes
     int[] getNodeRow(){
         return costs.getSelfRow();
@@ -121,71 +105,18 @@ public class Node {
 
     int[] getNodeRow(int id){return costs.getRow(id); }
 
-    int[] getNodeRowOld(){ return oldCosts.getSelfRow(); }
 
     public String prettyString(){
         return String.format("%d\n" +
                 "%s",
                 this.id, this.costs.prettyString());
     }
+
     public String lineString(){
         return "Node{" +
                 "id=" + id +
                 "costs=" + costs.toString() +
                 '}';
-    }
-    @Override
-    public String toString() {
-        return prettyString();
-//        return "Node{" +
-//                "id=" + id +
-//                "costs=" + costs.toString() +
-//                '}';
-    }
-
-    // might not need this. maybe just replace row with new
-//    public boolean update(int node2Id, int[] nodeRow) {
-//        boolean flag = false;
-//        for(int i=0; i<nodeRow.length; i++){
-//            int node2OldValue = oldCosts.getCost(node2Id, i);
-//            if(node2OldValue > nodeRow[i]){
-//                costs.setLog(node2Id-1, i , nodeRow[i]);
-//                flag = true;
-//            }
-//        }
-//
-//        return flag;
-//    }
-
-    // Check if going to another node is faster than what we currently have
-    public boolean updateSelf() {
-        boolean selfUpdateFlag = false;
-
-        for(int i=0; i<costs.getColSize();i++){
-            if(i == id-1) continue; // ignore selfs value
-            int minCost = calculateMinCost(i);
-
-            if(minCost != costs.getCost(this.id, i) && minCost != Integer.MIN_VALUE){
-                costs.setLog(id-1, i, minCost);
-                selfUpdateFlag = true;
-            }
-
-        }
-
-        return selfUpdateFlag;
-    }
-
-    private int calculateMinCost(int col) {
-        int minVal = Integer.MAX_VALUE;//costs.getCost(id-1, col);
-
-        for(int i=0; i<costs.getColSize();i++){
-            if(i == id-1) continue; // ignore selfs value
-            int xy =  oldCosts.getCost(this.id, i);
-            int dy = costs.getCost(i+1, col);
-            minVal = Math.min(minVal, xy + dy);
-        }
-
-        return minVal;
     }
 
     private int dx(int yIndex, int vIndex){
@@ -201,8 +132,6 @@ public class Node {
     }
 
     private int minV(int xId, int yIndex, int vIndex){
-        int result = Integer.MAX_VALUE;
-
         int C = this.costs.getCost()[xId-1][vIndex];
         int dv = this.costs.getCost()[vIndex][yIndex];
 
@@ -210,22 +139,23 @@ public class Node {
         return C+dv;
     }
 
-    public void save(){
-        this.oldCosts = new Costs(this.costs);
+    @Override
+    public String toString() {
+        return prettyString();
+//        return "Node{" +
+//                "id=" + id +
+//                "costs=" + costs.toString() +
+//                '}';
     }
-
 
     @Override
     public int hashCode() {
         return this.toString().hashCode();
     }
 
-
     @Override
     public boolean equals(Object obj) {
         return (obj instanceof Node) && (toString().equals(obj.toString()));
     }
-
-
 }
 
