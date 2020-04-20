@@ -2,6 +2,7 @@ package com.company.jaimes;
 
 import org.jgrapht.graph.DefaultWeightedEdge;
 
+// needed for graph library.
 public class NodeWeightedEdge extends DefaultWeightedEdge{
     @Override
     protected Object getSource() {

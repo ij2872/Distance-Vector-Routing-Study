@@ -1,55 +1,59 @@
 package com.company.jaimes;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.CountDownLatch;
 
 public class NodeView {
-    private Scanner in;
     private NodeGraph nodeGraph;
 
-
-    NodeView(){
-        initView();
+    public void init(List<Node> nodes) {
+        nodeGraph = new NodeGraph(nodes);
     }
 
-    private void initView(){
-        in = new Scanner(System.in);
-    }
-
-    public void print(Node[] nodes) {
+    public void print(List<Node> nodes) {
         System.out.println("--------------NodeView.print()---------------");
-        Arrays.stream(nodes).forEach((node)-> System.out.println(node.lineString()));
+        nodes.forEach(node -> System.out.println(node.lineString()));
         System.out.println("--------------------------------------");
-
     }
 
-
-
-    public void listen() {
-//        in.nextLine();
-        CountDownLatch latch = new CountDownLatch(1);
-        nodeGraph.addStateCount();
+    // listens to gui for any button responses. Goes back to NodeController completed
+    public NodeViewStatus listen(int stateChangeCount) {
+        CountDownLatch latch = new CountDownLatch(1); // pauses thread until other threads lower the countdown to 0
         nodeGraph.addLatch(latch);
+        nodeGraph.setStateChangeCount(stateChangeCount);
+
         try {
-            latch.await();
+            latch.await(); // wait until all threads are finished
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         System.out.println("NodeView button pressed");
+        return nodeGraph.getStatus();
     }
 
+    // graph is finished for updating
     public void close(){
-        in.close();
         nodeGraph.close();
     }
 
-    public void init(Node[] nodes, List<List<Integer>> connectionList) {
-        nodeGraph = new NodeGraph(nodes, connectionList);
+    // update the graph
+    public boolean update() {
+        return nodeGraph.update();
     }
 
-    public void update() {
-        nodeGraph.update();
+    // reload the graph buttons
+    public void reload(boolean hasUpdated) {
+        nodeGraph.reload(hasUpdated);
+    }
+
+    // update the counter
+    public void validateStateChangeCount(int stateChangeCount) {
+        nodeGraph.setStateChangeCount(stateChangeCount);
+    }
+
+    // used for simulation option to show steps with time passed
+    public void overwriteLabel(String text){
+        nodeGraph.overwriteLabel(text);
     }
 }

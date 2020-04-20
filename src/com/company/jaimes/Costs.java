@@ -1,32 +1,31 @@
 package com.company.jaimes;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
+
 import java.util.Arrays;
-import java.util.List;
 
 public class Costs {
-    private int parentIndex;
-    private int[][] log;
+    private int parentIndex; // index of the node that owns this matrix cost
+    private int[][] log; // our main matrix. each node should have it's own
 
     Costs(int id, int size){
         this.parentIndex = id - 1;
         this.log = new int[size][size];
         for(int i=0; i<log.length; ++i){
             if(i == this.parentIndex){
-                Arrays.fill(log[i], Integer.MAX_VALUE);
+                Arrays.fill(log[i], Integer.MAX_VALUE); // fill as infinity
 
             }else{
                 Arrays.fill(log[i], Integer.MAX_VALUE);
             }
         }
-        log[id-1][id-1] = 0;
+        log[id-1][id-1] = 0; // self cell should be 0 for a vertex
     }
 
     void addCost(int nodeId, int destId, int cost ){
         this.log[nodeId-1][destId-1] = cost;
     }
 
+    // gets the nodes own row
     int[] getSelfRow(){
         return log[parentIndex];
     }
